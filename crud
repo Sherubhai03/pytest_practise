@@ -1,0 +1,73 @@
+import pytest
+import allure
+import requests
+
+
+def create_token():
+    url = "https://restful-booker.herokuapp.com/auth"
+    headers = {"Content-Type": "application/json"}
+    payload = {
+        "username": "admin",
+        "password": "password123"
+    }
+    response = requests.post(url=url, headers=headers, json=payload)
+    jsonresp = response.json()
+    return jsonresp["token"]
+
+
+def create_booking():
+    url = "https://restful-booker.herokuapp.com/booking"
+    headers = {"Content-Type": "application/json"}
+    payload = {
+        "firstname": "Jim",
+        "lastname": "Brown",
+        "totalprice": 111,
+        "depositpaid": True,
+        "bookingdates": {
+            "checkin": "2018-01-01",
+            "checkout": "2019-01-01"
+        },
+        "additionalneeds": "Breakfast"
+    }
+    responsedata1 = requests.post(url=url, headers=headers, json=payload)
+    responsedata = responsedata1.json()
+    bookid = responsedata["bookingid"]
+    return bookid
+def test_put_request():
+    baseurl = "https://restful-booker.herokuapp.com"
+    basepath = "/booking/" + str(create_booking())
+    puturl = baseurl + basepath
+    print(puturl)
+    cookie = "token=" + create_token()
+    headers = {
+        "Content-Type": "application/json",
+        "cookie": cookie
+    }
+    payload = {
+        "firstname": "JJim",
+        "lastname": "Baba",
+        "totalprice": 111,
+        "depositpaid": True,
+        "bookingdates": {
+            "checkin": "2018-01-01",
+            "checkout": "2019-01-01"
+        },
+        "additionalneeds": "Breakfast"
+    }
+    responsedata1 = requests.put(url=puturl, headers=headers, json=payload)
+    responsedata = responsedata1.json()
+    assert responsedata["firstname"] == "JJim"
+    assert responsedata["lastname"] == "Baba"
+    print("upadted name = " + responsedata["firstname"] +" " + responsedata["lastname"])
+
+def test_delete():
+    baseurl = "https://restful-booker.herokuapp.com"
+    basepath = "/booking/" + str(create_booking())
+    delurl = baseurl + basepath
+    cookie_val = "token=" + create_token()
+    headers = {
+        "Content-Type": "application/json",
+        "cookie": cookie_val
+    }
+    print(headers)
+    response = requests.delete(url=delurl,headers=headers)
